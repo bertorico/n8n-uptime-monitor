@@ -1,0 +1,568 @@
+{
+  "name": "Website Uptime Monitor",
+  "nodes": [
+    {
+      "parameters": {
+        "rule": {
+          "interval": [
+            {
+              "field": "minutes"
+            }
+          ]
+        }
+      },
+      "type": "n8n-nodes-base.scheduleTrigger",
+      "typeVersion": 1.3,
+      "position": [
+        0,
+        -224
+      ],
+      "id": "461846e4-5805-4ee1-b572-63edf55f6c18",
+      "name": "Schedule Trigger"
+    },
+    {
+      "parameters": {
+        "url": "http://example.com",
+        "options": {
+          "batching": {
+            "batch": {}
+          },
+          "redirect": {
+            "redirect": {}
+          },
+          "timeout": 10000
+        }
+      },
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.3,
+      "position": [
+        448,
+        -224
+      ],
+      "id": "1c861b64-9f1c-4b84-9f93-97a200c47a19",
+      "name": "HTTP Request",
+      "onError": "continueRegularOutput"
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "9dc61a0a-0fc1-4744-9f60-fb94fa733be9",
+              "name": "timestamp",
+              "value": "={{ new Date().toISOString() }}",
+              "type": "string"
+            },
+            {
+              "id": "de052b0d-c75a-44dd-9d60-cb998412334b",
+              "name": "url",
+              "value": "http://example.com",
+              "type": "string"
+            },
+            {
+              "id": "9dc4022c-c40c-46f9-b40d-f91048ec2d6d",
+              "name": "status_code",
+              "value": "={{ $json.error ? ($json.error.status ?? 0) : 200 }}",
+              "type": "number"
+            },
+            {
+              "id": "a7d1d923-c67b-402e-98c0-ec4256624970",
+              "name": "response_time_ms",
+              "value": "={{ Date.now() - $('Set Start Time').item.json.start_time }}",
+              "type": "number"
+            },
+            {
+              "id": "5b99afe1-80e8-4d62-a181-2d627015c640",
+              "name": "is_up",
+              "value": "={{ !$json.error }}",
+              "type": "boolean"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        672,
+        -224
+      ],
+      "id": "4dc7a1a9-2448-421a-893a-73831ed4c9a3",
+      "name": "Calculate Metrics"
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "00cccb92-8201-4a53-a10e-ce9ded939b1f",
+              "name": "start_time",
+              "value": "={{ Date.now() }}",
+              "type": "number"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        224,
+        -224
+      ],
+      "id": "8f5ee285-4bc1-47d4-ad2d-61526420d4ac",
+      "name": "Set Start Time"
+    },
+    {
+      "parameters": {
+        "operation": "append",
+        "documentId": {
+          "__rl": true,
+          "value": "YOUR_SHEET_ID",
+          "mode": "list",
+          "cachedResultName": "log_kasm",
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/YOUR_SHEET_ID/edit?usp=drivesdk"
+        },
+        "sheetName": {
+          "__rl": true,
+          "value": "gid=0",
+          "mode": "list",
+          "cachedResultName": "Foglio1",
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/YOUR_SHEET_ID/edit#gid=0"
+        },
+        "columns": {
+          "mappingMode": "defineBelow",
+          "value": {
+            "timestamp": "={{ $json.timestamp }}",
+            "url": "={{ $json.url }}",
+            "status_code": "={{ $json.status_code }}",
+            "response_time_ms": "={{ $json.response_time_ms }}",
+            "is_up": "={{ $json.is_ip }}"
+          },
+          "matchingColumns": [],
+          "schema": [
+            {
+              "id": "timestamp",
+              "displayName": "timestamp",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "url",
+              "displayName": "url",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "status_code",
+              "displayName": "status_code",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "response_time_ms",
+              "displayName": "response_time_ms",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "is_up",
+              "displayName": "is_up",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            }
+          ],
+          "attemptToConvertTypes": false,
+          "convertFieldsToString": false
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.googleSheets",
+      "typeVersion": 4.7,
+      "position": [
+        896,
+        -224
+      ],
+      "id": "3f74dd08-6f49-4d43-a3dc-ff0e61b94ed4",
+      "name": "Uptime Monitor Log",
+      "credentials": {
+        "googleSheetsOAuth2Api": {
+          "id": "L9mSuSfCBZNIEQ42",
+          "name": "Google Sheets account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict",
+            "version": 3
+          },
+          "conditions": [
+            {
+              "id": "1c405fa6-9ea9-413e-a679-f1a69d341a25",
+              "leftValue": "={{ $('Calculate Metrics').item.json.is_up }}",
+              "rightValue": "true",
+              "operator": {
+                "type": "boolean",
+                "operation": "false",
+                "singleValue": true
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.3,
+      "position": [
+        1120,
+        -224
+      ],
+      "id": "fde0a65c-6e63-4c14-9ca0-41c6411ed367",
+      "name": "Is Down?"
+    },
+    {
+      "parameters": {
+        "amount": 120
+      },
+      "type": "n8n-nodes-base.wait",
+      "typeVersion": 1.1,
+      "position": [
+        1568,
+        -320
+      ],
+      "id": "967a158b-7e42-49a0-8de3-9dafd791abf4",
+      "name": "Wait",
+      "webhookId": "c7bf050e-d535-4d00-bc3f-e6c67641fe2e"
+    },
+    {
+      "parameters": {
+        "url": "http://example.com",
+        "options": {
+          "batching": {
+            "batch": {}
+          },
+          "redirect": {
+            "redirect": {}
+          },
+          "timeout": 10000
+        }
+      },
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.3,
+      "position": [
+        1792,
+        -320
+      ],
+      "id": "873cb136-4d80-4cef-bb36-f0cccb62a14a",
+      "name": "HTTP Request1",
+      "onError": "continueRegularOutput"
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict",
+            "version": 3
+          },
+          "conditions": [
+            {
+              "id": "1c405fa6-9ea9-413e-a679-f1a69d341a25",
+              "leftValue": "={{ $json.error.status }}",
+              "rightValue": 0,
+              "operator": {
+                "type": "number",
+                "operation": "equals"
+              }
+            },
+            {
+              "id": "59263324-a980-46fb-9fc2-56a81d4672c8",
+              "leftValue": "={{ $json.error.status }}",
+              "rightValue": 399,
+              "operator": {
+                "type": "number",
+                "operation": "gt"
+              }
+            }
+          ],
+          "combinator": "or"
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.3,
+      "position": [
+        2016,
+        -320
+      ],
+      "id": "7c48acef-683a-461f-8573-948808dc2d0b",
+      "name": "Still Down?1"
+    },
+    {
+      "parameters": {},
+      "type": "n8n-nodes-base.noOp",
+      "typeVersion": 1,
+      "position": [
+        1344,
+        -128
+      ],
+      "id": "c5a7bacc-7ede-4d01-80df-082d3e56b5d3",
+      "name": "No Operation, do nothing"
+    },
+    {
+      "parameters": {},
+      "type": "n8n-nodes-base.noOp",
+      "typeVersion": 1,
+      "position": [
+        2464,
+        -224
+      ],
+      "id": "d85bbf07-3c87-459c-8dd9-ade3725c1528",
+      "name": "No Operation, do nothing1"
+    },
+    {
+      "parameters": {
+        "chatId": "YOUR_CHAT_ID",
+        "text": "=✅ RECUPERATO — Falso allarme\n\n🌐 Il sito è tornato online dopo il secondo check.\n⏱️ Response time: {{ $('Calculate Metrics').item.json.response_time_ms }}ms",
+        "additionalFields": {
+          "parse_mode": "Markdown"
+        }
+      },
+      "type": "n8n-nodes-base.telegram",
+      "typeVersion": 1.2,
+      "position": [
+        2240,
+        -224
+      ],
+      "id": "8365e873-8b20-4fc6-bf29-0823408dc6b4",
+      "name": "Send Message Is Up",
+      "webhookId": "41aac27b-0fbd-4f79-9a86-a1f900225c91",
+      "credentials": {
+        "telegramApi": {
+          "id": "QS4zLzKT2IpjR2AE",
+          "name": "bettoClaw"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "chatId": "YOUR_CHAT_ID",
+        "text": "=🚨 CONFERMATO — SITO ANCORA DOWN\n\n🌐 {{ $('Calculate Metrics').item.json.url }}\n❌ Il sito non risponde dopo 2 tentativi\n🕐 {{ $('Calculate Metrics').item.json.timestamp }}\n\nIntervento necessario!",
+        "additionalFields": {
+          "parse_mode": "Markdown"
+        }
+      },
+      "type": "n8n-nodes-base.telegram",
+      "typeVersion": 1.2,
+      "position": [
+        2240,
+        -416
+      ],
+      "id": "d61fa3dc-cfa2-4602-80b2-d4496f9c4147",
+      "name": "Send Message Still Down",
+      "webhookId": "41aac27b-0fbd-4f79-9a86-a1f900225c91",
+      "credentials": {
+        "telegramApi": {
+          "id": "QS4zLzKT2IpjR2AE",
+          "name": "bettoClaw"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "chatId": "YOUR_CHAT_ID",
+        "text": "=⚠️ SITO DOWN  🌐 {{ $json.url }} \n\n❌ Status: {{ $json.status_code }} \n⏱️ Response time: {{ $json.response_time_ms }}ms \n🕐 {{ $json.timestamp }}  \n\nVerifico di nuovo tra 2 minuti...",
+        "additionalFields": {
+          "parse_mode": "Markdown"
+        }
+      },
+      "type": "n8n-nodes-base.telegram",
+      "typeVersion": 1.2,
+      "position": [
+        1344,
+        -320
+      ],
+      "id": "f8bc8bc4-9ef7-4481-9a26-59e68ff98cfa",
+      "name": "Send Message is Down",
+      "webhookId": "41aac27b-0fbd-4f79-9a86-a1f900225c91",
+      "credentials": {
+        "telegramApi": {
+          "id": "QS4zLzKT2IpjR2AE",
+          "name": "bettoClaw"
+        }
+      }
+    }
+  ],
+  "pinData": {},
+  "connections": {
+    "Schedule Trigger": {
+      "main": [
+        [
+          {
+            "node": "Set Start Time",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "HTTP Request": {
+      "main": [
+        [
+          {
+            "node": "Calculate Metrics",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Calculate Metrics": {
+      "main": [
+        [
+          {
+            "node": "Uptime Monitor Log",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Set Start Time": {
+      "main": [
+        [
+          {
+            "node": "HTTP Request",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Uptime Monitor Log": {
+      "main": [
+        [
+          {
+            "node": "Is Down?",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Is Down?": {
+      "main": [
+        [
+          {
+            "node": "Send Message is Down",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "No Operation, do nothing",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Wait": {
+      "main": [
+        [
+          {
+            "node": "HTTP Request1",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "HTTP Request1": {
+      "main": [
+        [
+          {
+            "node": "Still Down?1",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Still Down?1": {
+      "main": [
+        [
+          {
+            "node": "Send Message Still Down",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Send Message Is Up",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Send Message Is Up": {
+      "main": [
+        [
+          {
+            "node": "No Operation, do nothing1",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Send Message is Down": {
+      "main": [
+        [
+          {
+            "node": "Wait",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": false,
+  "settings": {
+    "executionOrder": "v1",
+    "availableInMCP": false
+  },
+  "versionId": "32425c36-c94b-453b-b41d-864b3695a61c",
+  "meta": {
+    "templateCredsSetupCompleted": true,
+    "instanceId": "f5a8d476f47ef1adf5e81eacb8cc9a84c57d89d18361b16c21198a77a3e43a39"
+  },
+  "id": "aNrYxyNHRSb2PlYh",
+  "tags": []
+}
